@@ -1,7 +1,6 @@
 import numpy as np
 import itertools
 
-# Define the number of colors and sequence length
 n_colors = 4
 sequence_length = 4
 
