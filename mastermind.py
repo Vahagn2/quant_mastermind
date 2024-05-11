@@ -1,30 +1,36 @@
 import numpy as np
-from qiskit_aer import AerSimulator
-from qiskit import QuantumCircuit, transpile
+import itertools
 
-def create_mastermind_circuit(n):
-    
-    circuit = QuantumCircuit(n, n)
+# Define the number of colors and sequence length
+n_colors = 4
+sequence_length = 4
 
-    for i in range(n):
-        circuit.h(i)
+# Generate a random secret sequence
+secret_sequence = np.random.randint(1, n_colors + 1, sequence_length)
 
-    secret_sequence = ['red', 'blue', 'green', 'yellow']  # Example secret sequence
-   
-    guess = ['red', 'blue', 'yellow', 'green']  # Example guess
+# Function to generate all possible sequences
+def generate_possible_sequences(n_colors, sequence_length):
+    return list(itertools.product(range(1, n_colors + 1), repeat=sequence_length))
 
-    for i in range(n):
-        if guess[i] == secret_sequence[i]:
-            circuit.x(i)  # Flip the qubit if the guess is correct
-    circuit.measure(range(n), range(n))
-    return circuit
+# Function to grade the guess
+def grade_guess(secret, guess):
+    grade = sum(1 for i in range(sequence_length) if secret[i] == guess[i])
+    return grade
 
-n_positions_colors = 4  # Number of positions/colors
-mastermind_circuit = create_mastermind_circuit(n_positions_colors)
+# Main function to play the game
+def play_game():
+    print("The secret sequence is:", secret_sequence)
+    attempts = 0
+    possible_sequences = generate_possible_sequences(n_colors, sequence_length)
+    while True:
+        guess = possible_sequences[0]  # Choose the first guess
+        grade = grade_guess(secret_sequence, guess)
+        print("Guess:", guess, "Grade:", grade)
+        attempts += 1
+        if grade == sequence_length:
+            print("Congratulations! You guessed the sequence in", attempts, "attempts.")
+            break
+        possible_sequences = [seq for seq in possible_sequences if grade_guess(seq, guess) == grade]
 
-simulator = AerSimulator()
-transpiled_circuit = transpile(mastermind_circuit, simulator)
-result = simulator.run(transpiled_circuit, shots=10).result()
-
-counts = result.get_counts(mastermind_circuit)
-print("Measurement results:", counts)
+# Play the game
+play_game()
