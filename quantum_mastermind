@@ -1,0 +1,60 @@
+import numpy as np
+
+# Define the number of colors and sequence length
+n_colors = 4
+sequence_length = 4
+
+# Generate a random secret sequence
+secret_sequence = np.random.randint(1, n_colors + 1, sequence_length)
+
+# Function to initialize the quantum state
+def initialize_state():
+    n_qubits = int(np.ceil(np.log2(n_colors))) * sequence_length  # Number of qubits needed
+    return np.ones(2 ** n_qubits, dtype=np.complex_) / np.sqrt(2 ** n_qubits)
+
+# Function to apply guess to the quantum state
+def apply_guess(state, guess):
+    n_qubits = int(np.log2(len(state)))
+    for i, color in enumerate(guess):
+        operator = np.zeros((n_colors, n_colors), dtype=np.complex_)
+        if color == 1:
+            operator[0, 0] = 1
+        elif color == 2:
+            operator[1, 1] = 1
+        elif color == 3:
+            operator[2, 2] = 1
+        elif color == 4:
+            operator[3, 3] = 1
+        operator = np.kron(np.eye(2 ** (i * 2)), operator)
+        operator = np.kron(operator, np.eye(2 ** (n_qubits - i * 2 - n_colors)))
+        state = np.dot(operator, state)
+    return state
+
+# Function to measure the quantum state and get the grade of the guess
+def measure_state(state):
+    probabilities = np.abs(state) ** 2
+    grade_counts = {}
+    for i in range(len(probabilities)):
+        guess = np.base_repr(i, base=n_colors).zfill(sequence_length)
+        grade = sum(1 for j in range(sequence_length) if secret_sequence[j] == int(guess[j]) + 1)
+        if grade not in grade_counts:
+            grade_counts[grade] = 0
+        grade_counts[grade] += probabilities[i]
+    return grade_counts
+
+# Main function to play the game
+def play_quantum_mastermind():
+    state = initialize_state()
+    attempts = 0
+    while True:
+        guess = np.random.randint(1, n_colors + 1, sequence_length)  # Random guess for now
+        state = apply_guess(state, guess)
+        grades = measure_state(state)
+        print("Guess:", guess, "Grades:", grades)
+        attempts += 1
+        if grades[sequence_length] > 0.5:
+            print("Congratulations! You guessed the sequence in", attempts, "attempts.")
+            break
+
+# Play the game
+play_quantum_mastermind()
