@@ -1,18 +1,14 @@
 import numpy as np
 
-# Define the number of colors and sequence length
 n_colors = 4
 sequence_length = 4
 
-# Generate a random secret sequence
 secret_sequence = np.random.randint(1, n_colors + 1, sequence_length)
 
-# Function to initialize the quantum state
 def initialize_state():
     n_qubits = int(np.ceil(np.log2(n_colors))) * sequence_length  # Number of qubits needed
     return np.ones(2 ** n_qubits, dtype=np.complex_) / np.sqrt(2 ** n_qubits)
 
-# Function to apply guess to the quantum state
 def apply_guess(state, guess):
     n_qubits = int(np.log2(len(state)))
     for i, color in enumerate(guess):
@@ -30,7 +26,6 @@ def apply_guess(state, guess):
         state = np.dot(operator, state)
     return state
 
-# Function to measure the quantum state and get the grade of the guess
 def measure_state(state):
     probabilities = np.abs(state) ** 2
     grade_counts = {}
@@ -42,7 +37,6 @@ def measure_state(state):
         grade_counts[grade] += probabilities[i]
     return grade_counts
 
-# Main function to play the game
 def play_quantum_mastermind():
     state = initialize_state()
     attempts = 0
@@ -56,5 +50,4 @@ def play_quantum_mastermind():
             print("Congratulations! You guessed the sequence in", attempts, "attempts.")
             break
 
-# Play the game
 play_quantum_mastermind()
