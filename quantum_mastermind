@@ -1,53 +1,56 @@
 import numpy as np
 
-n_colors = 4
-sequence_length = 4
 
-secret_sequence = np.random.randint(1, n_colors + 1, sequence_length)
+def hadamard(n):
+    H = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+    H_n = H
+    for _ in range(n - 1):
+        H_n = np.kron(H_n, H)
+    return H_n
 
-def initialize_state():
-    n_qubits = int(np.ceil(np.log2(n_colors))) * sequence_length  # Number of qubits needed
-    return np.ones(2 ** n_qubits, dtype=np.complex_) / np.sqrt(2 ** n_qubits)
+def pauli_x(n, target):
+    I = np.eye(2)
+    X = np.array([[0, 1], [1, 0]])
+    gate = I
+    for i in range(n):
+        if i == target:
+            gate = np.kron(gate, X)
+        else:
+            gate = np.kron(gate, I)
+    return gate
 
-def apply_guess(state, guess):
-    n_qubits = int(np.log2(len(state)))
-    for i, color in enumerate(guess):
-        operator = np.zeros((n_colors, n_colors), dtype=np.complex_)
-        if color == 1:
-            operator[0, 0] = 1
-        elif color == 2:
-            operator[1, 1] = 1
-        elif color == 3:
-            operator[2, 2] = 1
-        elif color == 4:
-            operator[3, 3] = 1
-        operator = np.kron(np.eye(2 ** (i * 2)), operator)
-        operator = np.kron(operator, np.eye(2 ** (n_qubits - i * 2 - n_colors)))
-        state = np.dot(operator, state)
-    return state
+def oracle(n):
+    oracle_matrix = np.eye(2**n)
+    index = int('010', 2)
+    oracle_matrix[index, index] = -1
+    return oracle_matrix
 
-def measure_state(state):
-    probabilities = np.abs(state) ** 2
-    grade_counts = {}
-    for i in range(len(probabilities)):
-        guess = np.base_repr(i, base=n_colors).zfill(sequence_length)
-        grade = sum(1 for j in range(sequence_length) if secret_sequence[j] == int(guess[j]) + 1)
-        if grade not in grade_counts:
-            grade_counts[grade] = 0
-        grade_counts[grade] += probabilities[i]
-    return grade_counts
+import random
 
-def play_quantum_mastermind():
-    state = initialize_state()
+def generate_hidden_sequence(n, num_colors):
+    return [random.randint(0, num_colors - 1) for _ in range(n)]
+
+def grade_guess(hidden_sequence, guess):
+    correct_positions = sum(1 for h, g in zip(hidden_sequence, guess) if h == g)
+    return correct_positions
+
+def make_guess(n, num_colors):
+    return [random.randint(0, num_colors - 1) for _ in range(n)]
+
+def play_game(n, num_colors):
+    hidden_sequence = generate_hidden_sequence(n, num_colors)
     attempts = 0
     while True:
-        guess = np.random.randint(1, n_colors + 1, sequence_length)  # Random guess for now
-        state = apply_guess(state, guess)
-        grades = measure_state(state)
-        print("Guess:", guess, "Grades:", grades)
+        guess = make_guess(n, num_colors)
         attempts += 1
-        if grades[sequence_length] > 0.5:
-            print("Congratulations! You guessed the sequence in", attempts, "attempts.")
+        correct_positions = grade_guess(hidden_sequence, guess)
+        print(f"Attempt #{attempts}: Guess: {guess} - Correct Positions: {correct_positions}")
+        if correct_positions == n:
+            print(f"Guessed the correct sequence {hidden_sequence} in {attempts} attempts!")
             break
 
-play_quantum_mastermind()
+
+n = 3 
+num_colors = 
+
+play_game(n, num_colors)
