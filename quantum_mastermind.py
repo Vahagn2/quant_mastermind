@@ -54,3 +54,7 @@ n = 3
 num_colors = 
 
 play_game(n, num_colors)
+
+#Sources
+#https://github.com/humppamies/QCM/blob/master/QCMastermind.ipynb
+#https://www.sourcecodester.com/c/16045/mastermind-game.html
